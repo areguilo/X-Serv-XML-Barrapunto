@@ -14,6 +14,7 @@
 from xml.sax.handler import ContentHandler
 from xml.sax import make_parser
 import sys
+import urllib.request
 
 class myContentHandler(ContentHandler):
 
@@ -21,6 +22,7 @@ class myContentHandler(ContentHandler):
         self.inItem = False
         self.inContent = False
         self.theContent = ""
+        #self.Cont=1
 
     def startElement (self, name, attrs):
         if name == 'item':
@@ -36,15 +38,14 @@ class myContentHandler(ContentHandler):
             self.inItem = False
         elif self.inItem:
             if name == 'title':
-                line = "Title: " + self.theContent + "."
-                # To avoid Unicode trouble
-                print(4)
-                print (line.encode('utf-8'))
+                #self.Cont=self.Cont+1
+                barrapunto.write("<h2><li>Title: " + self.theContent + "</li>" )
                 self.inContent = False
                 self.theContent = ""
             elif name == 'link':
                 print(5)
                 print (" Link: " + self.theContent + ".")
+                barrapunto.write("<li><a href =" + self.theContent + ">" + str(self.theContent) + "</a></h2></li>")
                 self.inContent = False
                 self.theContent = ""
 
@@ -53,14 +54,16 @@ class myContentHandler(ContentHandler):
             self.theContent = self.theContent + chars
 
 # --- Main prog
-
-if len(sys.argv)<2:
-    print ("Usage: python xml-parser-barrapunto.py <document>")
-    print()
-    print (" <document>: file name of the document to parse")
-    sys.exit(1)
-
 # Load parser and driver
+barrapunto = open('barrapunto.html','w')
+
+opening_lines = '<!DOCTYPE html>' + '\n' + '<html>' + '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />' + '\n'
+opening_lines  += '<head>' + '\n' + '<title>/.Titulares</title>' + '\n' + '</head>' + '\n'
+opening_lines +=  '<h1>Titulares de Barrapunto: </h1>' + '\n'
+opening_lines += '<body>' + '\n'
+
+barrapunto.write(opening_lines)
+
 
 theParser = make_parser()
 theHandler = myContentHandler()
@@ -68,7 +71,8 @@ theParser.setContentHandler(theHandler)
 
 # Ready, set, go!
 
-xmlFile = open(sys.argv[1],"r")
+xmlFile = urllib.request.urlopen('http://barrapunto.com/index.rss')
 theParser.parse(xmlFile)
+barrapunto.write('\n'+ '</body>' + '\n' + '</html>'+ '\n')
 
 print ("Parse complete")
